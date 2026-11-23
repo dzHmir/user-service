@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 4
       author: dzmitry
+      logicalFilePath: db/changelog/changes/004-add-card-constraints.yaml
       changes:
         - addForeignKeyConstraint:
             baseTableName: payment_cards

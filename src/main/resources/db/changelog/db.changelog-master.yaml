@@ -1,12 +1,12 @@
 databaseChangeLog:
   - include:
-      file: db/changelog/changes/001-create-users-table.yaml
+      file: db/changelog/changes/00.00.01/001-create-users-table.yaml
 
   - include:
-      file: db/changelog/changes/002-create-payment-cards-table.yaml
+      file: db/changelog/changes/00.00.01/002-create-payment-cards-table.yaml
 
   - include:
-      file: db/changelog/changes/003-add-audit-columns.yaml
+      file: db/changelog/changes/00.00.01/003-add-audit-columns.yaml
 
   - include:
-      file: db/changelog/changes/004-add-card-constraints.yaml
+      file: db/changelog/changes/00.00.01/004-add-card-constraints.yaml

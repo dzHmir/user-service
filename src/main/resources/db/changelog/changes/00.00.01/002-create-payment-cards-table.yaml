@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 2
       author: dzmitry
+      logicalFilePath: db/changelog/changes/002-create-payment-cards-table.yaml
       changes:
         - createTable:
             tableName: payment_cards
@@ -11,8 +12,8 @@ databaseChangeLog:
                   type: BIGINT
                   autoIncrement: true
                   constraints:
-                      primaryKey: true
-                      nullable: false
+                    primaryKey: true
+                    nullable: false
 
               - column:
                   name: user_id

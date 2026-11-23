@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 3
       author: dzmitry
+      logicalFilePath: db/changelog/changes/003-add-audit-columns.yaml
       changes:
         - addColumn:
             tableName: users
