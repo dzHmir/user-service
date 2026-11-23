@@ -1,7 +1,10 @@
 package com.innowise.academy.user_service.service;
 
-import com.innowise.academy.user_service.entity.PaymentCardEntity;
+import com.innowise.academy.user_service.dto.request.UserRequestDto;
+import com.innowise.academy.user_service.dto.response.UserResponseDto;
 import com.innowise.academy.user_service.entity.UserEntity;
+import com.innowise.academy.user_service.exception.UserNotFoundException;
+import com.innowise.academy.user_service.mapper.UserMapper;
 import com.innowise.academy.user_service.repository.UserRepository;
 import com.innowise.academy.user_service.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
@@ -9,14 +12,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public Page<UserEntity> findAll(String name, String surname, Pageable page) {
+    @Transactional(readOnly = true)
+    public Page<UserResponseDto> findAll(String name, String surname, Pageable page) {
         Specification<UserEntity> spec = Specification.unrestricted();
 
         if (name != null && !name.isBlank()) {
@@ -27,38 +33,43 @@ public class UserService {
             spec = spec.and(UserSpecification.hasSurname(surname));
         }
 
-        return userRepository.findAll(spec, page);
+        return userRepository.findAll(spec, page).map(userMapper::toDto);
     }
 
-    public UserEntity create(UserEntity userEntity) {
-
-        if (userEntity.getCards().size() > 5) {
-            throw new IllegalStateException("User cannot have more than 5 cards");
-        }
-
-        for (PaymentCardEntity card : userEntity.getCards()) {
-            card.setUser(userEntity);
-        }
-
-        return userRepository.save(userEntity);
+    @Transactional
+    public UserResponseDto create(UserRequestDto dto) {
+        UserEntity userEntity = userMapper.toEntity(dto);
+        UserEntity savedUser = userRepository.save(userEntity);
+        return userMapper.toDto(savedUser);
     }
 
-    public UserEntity findById(Long id) {
-        return userRepository.findById(id).orElseThrow();
+    @Transactional(readOnly = true)
+    public UserResponseDto findById(Long id) {
+        UserEntity userEntity = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        return userMapper.toDto(userEntity);
     }
 
-    public UserEntity update(Long id, UserEntity updatedUserEntity) {
-        UserEntity userEntity = userRepository.findById(id).orElseThrow();
-        userEntity.setName(updatedUserEntity.getName());
-        userEntity.setSurname(updatedUserEntity.getSurname());
-        userEntity.setBirthDate(updatedUserEntity.getBirthDate());
-        userEntity.setEmail(updatedUserEntity.getEmail());
-        return userRepository.save(userEntity);
+    @Transactional
+    public UserResponseDto update(Long id, UserRequestDto dto) {
+        UserEntity userEntity = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        userMapper.updateEntity(dto, userEntity);
+        return userMapper.toDto(userEntity);
     }
 
-    public UserEntity setActive(Long id, boolean active) {
-        UserEntity userEntity = userRepository.findById(id).orElseThrow();
+    @Transactional
+    public UserResponseDto setActive(Long id, boolean active) {
+        UserEntity userEntity = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
         userEntity.setActive(active);
-        return userRepository.save(userEntity);
+        return userMapper.toDto(userEntity);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        UserEntity userEntity = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        userRepository.delete(userEntity);
     }
 }
