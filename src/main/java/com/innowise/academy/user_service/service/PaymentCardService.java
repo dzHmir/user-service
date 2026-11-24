@@ -2,107 +2,24 @@ package com.innowise.academy.user_service.service;
 
 import com.innowise.academy.user_service.dto.request.PaymentCardRequestDto;
 import com.innowise.academy.user_service.dto.response.PaymentCardResponseDto;
-import com.innowise.academy.user_service.entity.PaymentCardEntity;
-import com.innowise.academy.user_service.entity.UserEntity;
-import com.innowise.academy.user_service.exception.MaxActiveCardsExceededException;
-import com.innowise.academy.user_service.exception.PaymentCardNotFoundException;
-import com.innowise.academy.user_service.exception.UserNotFoundException;
-import com.innowise.academy.user_service.mapper.PaymentCardMapper;
-import com.innowise.academy.user_service.repository.PaymentCardRepository;
-import com.innowise.academy.user_service.repository.UserRepository;
-import com.innowise.academy.user_service.specification.PaymentCardSpecification;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Service
-@RequiredArgsConstructor
-public class PaymentCardService {
+public interface PaymentCardService {
 
-    private final PaymentCardRepository paymentCardRepository;
-    private final UserRepository userRepository;
-    private final PaymentCardMapper paymentCardMapper;
+    Page<PaymentCardResponseDto> findAll(String name, String surname, Pageable page);
 
-    @Transactional(readOnly = true)
-    public Page<PaymentCardResponseDto> findAll(String name, String surname, Pageable page) {
-        Specification<PaymentCardEntity> spec = Specification.unrestricted();
+    PaymentCardResponseDto create(Long userId, PaymentCardRequestDto dto);
 
-        if (name != null && !name.isBlank()) {
-            spec = spec.and(PaymentCardSpecification.hasUserName(name));
-        }
+    PaymentCardResponseDto findById(Long id);
 
-        if (surname != null && !surname.isBlank()) {
-            spec = spec.and(PaymentCardSpecification.hasUserSurname(surname));
-        }
+    List<PaymentCardResponseDto> findByUserId(Long userId);
 
-        return paymentCardRepository.findAll(spec, page).map(paymentCardMapper::toDto);
-    }
+    PaymentCardResponseDto update(Long id, PaymentCardRequestDto dto);
 
-    @Transactional
-    public PaymentCardResponseDto create(Long userId, PaymentCardRequestDto dto) {
-        UserEntity userEntity = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+    PaymentCardResponseDto setActive(Long id, boolean active);
 
-        if (paymentCardRepository.countActiveCardsByUserId(userId) >= 5) {
-            throw new MaxActiveCardsExceededException(userId);
-        }
-
-        PaymentCardEntity cardEntity = paymentCardMapper.toEntity(dto);
-        cardEntity.setUser(userEntity);
-        PaymentCardEntity savedCard = paymentCardRepository.save(cardEntity);
-
-        return paymentCardMapper.toDto(savedCard);
-    }
-
-    @Transactional(readOnly = true)
-    public PaymentCardResponseDto findById(Long id) {
-        PaymentCardEntity paymentCard = paymentCardRepository.findById(id)
-                .orElseThrow(() -> new PaymentCardNotFoundException(id));
-        return paymentCardMapper.toDto(paymentCard);
-    }
-
-    @Transactional(readOnly = true)
-    public List<PaymentCardResponseDto> findByUserId(Long userId) {
-        List<PaymentCardEntity> paymentCards = paymentCardRepository.findByUser_Id(userId);
-
-        return paymentCards.stream().map(paymentCardMapper::toDto).toList();
-    }
-
-    @Transactional
-    public PaymentCardResponseDto update(Long id, PaymentCardRequestDto dto) {
-        PaymentCardEntity card = paymentCardRepository.findById(id)
-                .orElseThrow(() -> new PaymentCardNotFoundException(id));
-        paymentCardMapper.updateEntity(dto, card);
-        return paymentCardMapper.toDto(card);
-    }
-
-    @Transactional
-    public PaymentCardResponseDto setActive(Long id, boolean active) {
-        PaymentCardEntity cardEntity = paymentCardRepository.findById(id)
-                .orElseThrow(() -> new PaymentCardNotFoundException(id));
-
-        if (active && !cardEntity.isActive()) {
-            long activeCount = paymentCardRepository.countActiveCardsByUserId(cardEntity.getUser().getId());
-            if (activeCount >= 5) {
-                throw new MaxActiveCardsExceededException(cardEntity.getUser().getId());
-            }
-        }
-
-        paymentCardRepository.updateActiveStatus(id, active);
-        cardEntity.setActive(active);
-
-        return paymentCardMapper.toDto(cardEntity);
-    }
-
-    @Transactional
-    public void delete(Long id) {
-        PaymentCardEntity cardEntity = paymentCardRepository.findById(id)
-                .orElseThrow(() -> new PaymentCardNotFoundException(id));
-        paymentCardRepository.delete(cardEntity);
-    }
+    void delete(Long id);
 }
