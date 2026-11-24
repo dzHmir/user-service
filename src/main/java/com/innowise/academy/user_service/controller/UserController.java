@@ -4,6 +4,7 @@ import com.innowise.academy.user_service.dto.request.PaymentCardRequestDto;
 import com.innowise.academy.user_service.dto.request.UserRequestDto;
 import com.innowise.academy.user_service.dto.response.PaymentCardResponseDto;
 import com.innowise.academy.user_service.dto.response.UserResponseDto;
+import com.innowise.academy.user_service.dto.response.UserWithCardsResponseDto;
 import com.innowise.academy.user_service.service.PaymentCardService;
 import com.innowise.academy.user_service.service.UserService;
 import jakarta.validation.Valid;
@@ -26,9 +27,9 @@ public class UserController {
     private final PaymentCardService paymentCardService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDto> findById(@PathVariable @Positive Long id) {
-        UserResponseDto userResponseDto = userService.findById(id);
-        return ResponseEntity.ok(userResponseDto);
+    public ResponseEntity<UserWithCardsResponseDto> findById(@PathVariable @Positive Long id) {
+        UserWithCardsResponseDto userWithCardsResponseDto = userService.findByIdWithCards(id);
+        return ResponseEntity.ok(userWithCardsResponseDto);
     }
 
     @GetMapping

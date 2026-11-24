@@ -12,6 +12,8 @@ import com.innowise.academy.user_service.repository.PaymentCardRepository;
 import com.innowise.academy.user_service.repository.UserRepository;
 import com.innowise.academy.user_service.specification.PaymentCardSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -27,6 +29,7 @@ public class PaymentCardService {
     private final PaymentCardRepository paymentCardRepository;
     private final UserRepository userRepository;
     private final PaymentCardMapper paymentCardMapper;
+    private final CacheManager cacheManager;
 
     @Transactional(readOnly = true)
     public Page<PaymentCardResponseDto> findAll(String name, String surname, Pageable page) {
@@ -43,6 +46,7 @@ public class PaymentCardService {
         return paymentCardRepository.findAll(spec, page).map(paymentCardMapper::toDto);
     }
 
+    @CacheEvict(value = "users", key = "#userId")
     @Transactional
     public PaymentCardResponseDto create(Long userId, PaymentCardRequestDto dto) {
         UserEntity userEntity = userRepository.findById(userId)
@@ -73,6 +77,7 @@ public class PaymentCardService {
         return paymentCards.stream().map(paymentCardMapper::toDto).toList();
     }
 
+    @CacheEvict(value = "users", key = "#result.userId()")
     @Transactional
     public PaymentCardResponseDto update(Long id, PaymentCardRequestDto dto) {
         PaymentCardEntity card = paymentCardRepository.findById(id)
@@ -81,6 +86,7 @@ public class PaymentCardService {
         return paymentCardMapper.toDto(card);
     }
 
+    @CacheEvict(value = "users", key = "#result.userId()")
     @Transactional
     public PaymentCardResponseDto setActive(Long id, boolean active) {
         PaymentCardEntity cardEntity = paymentCardRepository.findById(id)
@@ -103,6 +109,8 @@ public class PaymentCardService {
     public void delete(Long id) {
         PaymentCardEntity cardEntity = paymentCardRepository.findById(id)
                 .orElseThrow(() -> new PaymentCardNotFoundException(id));
+        Long userId = cardEntity.getUser().getId();
         paymentCardRepository.delete(cardEntity);
+        cacheManager.getCache("users").evict(userId);
     }
 }
