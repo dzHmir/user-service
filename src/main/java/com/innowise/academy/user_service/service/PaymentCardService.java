@@ -93,7 +93,9 @@ public class PaymentCardService {
             }
         }
 
+        paymentCardRepository.updateActiveStatus(id, active);
         cardEntity.setActive(active);
+
         return paymentCardMapper.toDto(cardEntity);
     }
 

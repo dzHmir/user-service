@@ -3,6 +3,7 @@ package com.innowise.academy.user_service.repository;
 import com.innowise.academy.user_service.entity.PaymentCardEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,8 +13,6 @@ public interface PaymentCardRepository extends JpaRepository<PaymentCardEntity, 
         JpaSpecificationExecutor<PaymentCardEntity> {
 
     List<PaymentCardEntity> findByUser_Id(Long userId);
-
-    long countByUser_Id(Long userId);
 
     @Query("""
             SELECT c
@@ -30,4 +29,8 @@ public interface PaymentCardRepository extends JpaRepository<PaymentCardEntity, 
               AND active = true
             """, nativeQuery = true)
     long countActiveCardsByUserId(@Param("userId") Long userId);
+
+    @Modifying
+    @Query("UPDATE PaymentCardEntity c SET c.active = :active WHERE c.id = :id")
+    void updateActiveStatus(@Param("id") Long id, @Param("active") boolean active);
 }

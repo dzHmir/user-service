@@ -6,6 +6,8 @@ import com.innowise.academy.user_service.service.PaymentCardService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +17,15 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentCardController {
 
     private final PaymentCardService paymentCardService;
+
+    @GetMapping
+    public ResponseEntity<Page<PaymentCardResponseDto>> findAll(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String surname,
+            Pageable pageable) {
+        Page<PaymentCardResponseDto> cards = paymentCardService.findAll(name, surname, pageable);
+        return ResponseEntity.ok(cards);
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<PaymentCardResponseDto> findById(@PathVariable @Positive Long id) {
