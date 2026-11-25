@@ -21,3 +21,5 @@ server:
 app:
   cache:
     ttl-minutes: 10
+  cards:
+    max-active: 5
