@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: dzmitry
+      logicalFilePath: db/changelog/changes/003-add-audit-columns.yaml
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - addColumn:
+            tableName: payment_cards
+            columns:
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
