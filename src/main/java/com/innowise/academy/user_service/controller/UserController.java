@@ -4,6 +4,7 @@ import com.innowise.academy.user_service.dto.request.PaymentCardRequestDto;
 import com.innowise.academy.user_service.dto.request.UserRequestDto;
 import com.innowise.academy.user_service.dto.response.PaymentCardResponseDto;
 import com.innowise.academy.user_service.dto.response.UserResponseDto;
+import com.innowise.academy.user_service.dto.response.UserWithCardsResponseDto;
 import com.innowise.academy.user_service.service.PaymentCardService;
 import com.innowise.academy.user_service.service.UserService;
 import jakarta.validation.Valid;
@@ -13,7 +14,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -26,9 +36,9 @@ public class UserController {
     private final PaymentCardService paymentCardService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDto> findById(@PathVariable @Positive Long id) {
-        UserResponseDto userResponseDto = userService.findById(id);
-        return ResponseEntity.ok(userResponseDto);
+    public ResponseEntity<UserWithCardsResponseDto> findById(@PathVariable @Positive Long id) {
+        UserWithCardsResponseDto userWithCardsResponseDto = userService.findByIdWithCards(id);
+        return ResponseEntity.ok(userWithCardsResponseDto);
     }
 
     @GetMapping

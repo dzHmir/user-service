@@ -14,6 +14,8 @@ import com.innowise.academy.user_service.service.PaymentCardService;
 import com.innowise.academy.user_service.specification.PaymentCardSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -29,6 +31,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
     private final PaymentCardRepository paymentCardRepository;
     private final UserRepository userRepository;
     private final PaymentCardMapper paymentCardMapper;
+    private final CacheManager cacheManager;
 
     @Value("${app.cards.max-active}")
     private int maxActiveCards;
@@ -50,6 +53,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
     }
 
     @Override
+    @CacheEvict(value = "users", key = "#userId")
     @Transactional
     public PaymentCardResponseDto create(Long userId, PaymentCardRequestDto dto) {
         UserEntity userEntity = userRepository.findById(userId)
@@ -83,6 +87,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
     }
 
     @Override
+    @CacheEvict(value = "users", key = "#result.userId()")
     @Transactional
     public PaymentCardResponseDto update(Long id, PaymentCardRequestDto dto) {
         PaymentCardEntity card = paymentCardRepository.findById(id)
@@ -92,6 +97,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
     }
 
     @Override
+    @CacheEvict(value = "users", key = "#result.userId()")
     @Transactional
     public PaymentCardResponseDto setActive(Long id, boolean active) {
         PaymentCardEntity cardEntity = paymentCardRepository.findById(id)
@@ -115,6 +121,8 @@ public class PaymentCardServiceImpl implements PaymentCardService {
     public void delete(Long id) {
         PaymentCardEntity cardEntity = paymentCardRepository.findById(id)
                 .orElseThrow(() -> new PaymentCardNotFoundException(id));
+        Long userId = cardEntity.getUser().getId();
         paymentCardRepository.delete(cardEntity);
+        cacheManager.getCache("users").evict(userId);
     }
 }

@@ -2,6 +2,7 @@ package com.innowise.academy.user_service.service.impl;
 
 import com.innowise.academy.user_service.dto.request.UserRequestDto;
 import com.innowise.academy.user_service.dto.response.UserResponseDto;
+import com.innowise.academy.user_service.dto.response.UserWithCardsResponseDto;
 import com.innowise.academy.user_service.entity.UserEntity;
 import com.innowise.academy.user_service.exception.UserNotFoundException;
 import com.innowise.academy.user_service.mapper.UserMapper;
@@ -9,6 +10,8 @@ import com.innowise.academy.user_service.repository.UserRepository;
 import com.innowise.academy.user_service.service.UserService;
 import com.innowise.academy.user_service.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -47,14 +50,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public UserResponseDto findById(Long id) {
-        UserEntity userEntity = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
-        return userMapper.toDto(userEntity);
-    }
-
-    @Override
+    @CacheEvict(value = "users", key = "#id")
     @Transactional
     public UserResponseDto update(Long id, UserRequestDto dto) {
         UserEntity userEntity = userRepository.findById(id)
@@ -64,6 +60,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = "users", key = "#id")
     @Transactional
     public UserResponseDto setActive(Long id, boolean active) {
         UserEntity userEntity = userRepository.findById(id)
@@ -73,10 +70,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = "users", key = "#id")
     @Transactional
     public void delete(Long id) {
         UserEntity userEntity = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
         userRepository.delete(userEntity);
+    }
+
+    @Override
+    @Cacheable(value = "users", key = "#id")
+    @Transactional(readOnly = true)
+    public UserWithCardsResponseDto findByIdWithCards(Long id) {
+        UserEntity userEntity = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        return userMapper.toWithCardsDto(userEntity);
     }
 }
