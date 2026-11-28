@@ -55,6 +55,11 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+tasks.named('sonar') {
+    dependsOn jacocoTestReport
 }
 
 jacocoTestReport {
@@ -83,6 +88,7 @@ sonar {
     properties {
         property "sonar.projectKey", "dzHmir_user-service"
         property "sonar.organization", "dzhmir"
-        property "sonar.coverage.exclusions", "**/*.yml,**/*.yaml,build.gradle,settings.gradle"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.coverage.exclusions", "**/.github/**,**/*.yml,**/*.yaml,**/*.gradle,**/*.gradle.kts,**/Dockerfile,**/compose.yaml"
     }
 }
