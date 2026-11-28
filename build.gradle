@@ -83,5 +83,6 @@ sonar {
     properties {
         property "sonar.projectKey", "dzHmir_user-service"
         property "sonar.organization", "dzhmir"
+        property "sonar.coverage.exclusions", "**/*.yml,**/*.yaml,build.gradle,settings.gradle"
     }
 }
